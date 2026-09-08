@@ -10,9 +10,9 @@ from core.agent import AgenticAlphaOS
 # ==========================================
 
 st.set_page_config(
-    page_title="Agentic Alpha",
-    page_icon="ðŸ¤–",
-    layout="wide"
+  page_title="Agentic Alpha",
+  page_icon="",
+  layout="wide"
 )
 
 
@@ -20,17 +20,17 @@ st.set_page_config(
 # HEADER
 # ==========================================
 
-st.title("ðŸ¤– Agentic Alpha")
+st.title(" Agentic Alpha")
 
 st.caption(
-    "Autonomous Market Intelligence â€¢ Binance market data â€¢ Explainable agent reasoning"
+  "Autonomous Market Intelligence | Binance market data | Explainable agent reasoning"
 )
 
 st.markdown(
-    """
-    **Agentic Alpha** turns live market data into a structured decision:
-    perception â†’ analysis â†’ multi-timeframe reasoning â†’ risk â†’ decision.
-    """
+  """
+  **Agentic Alpha** turns live market data into a structured decision:
+  perception -> analysis -> multi-timeframe reasoning -> risk -> decision.
+  """
 )
 
 s1, s2, s3 = st.columns(3)
@@ -43,34 +43,34 @@ s3.metric("EXECUTION", "DISABLED")
 # MARKET CONTROLS
 # ==========================================
 
-st.subheader("âš™ï¸ Market Controls")
+st.subheader(" Market Controls")
 
 col1, col2 = st.columns([2, 1])
 
 with col1:
 
-    symbol = st.selectbox(
-        "Select a trading pair",
-        [
-            "BTCUSDT",
-            "ETHUSDT",
-            "BNBUSDT",
-            "SOLUSDT",
-            "XRPUSDT"
-        ]
-    )
+  symbol = st.selectbox(
+    "Select a trading pair",
+    [
+      "BTCUSDT",
+      "ETHUSDT",
+      "BNBUSDT",
+      "SOLUSDT",
+      "XRPUSDT"
+    ]
+  )
 
 with col2:
 
-    st.write("")
+  st.write("")
 
-    st.write("")
+  st.write("")
 
-    analyze = st.button(
-        "ðŸ” Analyze Market",
-        type="primary",
-        use_container_width=True
-    )
+  analyze = st.button(
+    " Analyze Market",
+    type="primary",
+    use_container_width=True
+  )
 
 
 # ==========================================
@@ -78,10 +78,10 @@ with col2:
 # ==========================================
 
 if "result" not in st.session_state:
-    st.session_state.result = None
+  st.session_state.result = None
 
 if "error" not in st.session_state:
-    st.session_state.error = None
+  st.session_state.error = None
 
 
 # ==========================================
@@ -93,27 +93,27 @@ market = BinanceMCPServer()
 
 if analyze:
 
-    st.session_state.error = None
+  st.session_state.error = None
 
-    try:
+  try:
 
-        agent = AgenticAlphaOS(
-            market_adapter=market
-        )
+    agent = AgenticAlphaOS(
+      market_adapter=market
+    )
 
-        with st.spinner(
-            "ðŸ¤– Agent analyzing live Binance data..."
-        ):
+    with st.spinner(
+      " Agent analyzing live Binance data..."
+    ):
 
-            result = agent.analyze(symbol)
+      result = agent.analyze(symbol)
 
-        st.session_state.result = result
+    st.session_state.result = result
 
-    except Exception as error:
+  except Exception as error:
 
-        st.session_state.result = None
+    st.session_state.result = None
 
-        st.session_state.error = str(error)
+    st.session_state.error = str(error)
 
 
 # ==========================================
@@ -122,15 +122,15 @@ if analyze:
 
 if st.session_state.error:
 
-    st.error(
-        "âŒ Market-data request failed."
-    )
+  st.error(
+    " Market-data request failed."
+  )
 
-    st.code(
-        st.session_state.error
-    )
+  st.code(
+    st.session_state.error
+  )
 
-    st.stop()
+  st.stop()
 
 
 result = st.session_state.result
@@ -142,413 +142,413 @@ result = st.session_state.result
 
 if result:
 
-    st.divider()
+  st.divider()
 
-    st.header(
-        f"ðŸ“Š {result['symbol']} Market Intelligence"
+  st.header(
+    f" {result['symbol']} Market Intelligence"
+  )
+
+
+  # ======================================
+  # MARKET METRICS
+  # ======================================
+
+  c1, c2, c3, c4 = st.columns(4)
+
+  c1.metric(
+    "Price",
+    f"${result['price']:,.4f}"
+  )
+
+  c2.metric(
+    "24h Change",
+    f"{result['change_percent']:+.2f}%"
+  )
+
+  c3.metric(
+    "24h Volume",
+    f"${result['volume']:,.0f}"
+  )
+
+  c4.metric(
+    "Volume Activity",
+    result["volume_activity"]
+  )
+
+  st.markdown("### Intelligence Snapshot")
+  snap1, snap2, snap3, snap4 = st.columns(4)
+
+  snap1.metric("Momentum", result["momentum"])
+  snap2.metric("Order-Book", result["order_pressure"])
+  snap3.metric("Regime", result["market_regime"])
+  snap4.metric("Agent Signal", result["signal"])
+
+
+  # ======================================
+  # PRICE CHART
+  # ======================================
+
+  st.subheader(" Live Price Chart")
+
+  chart_interval = st.selectbox(
+    "Chart timeframe",
+    [
+      "1m",
+      "5m",
+      "15m",
+      "1h",
+      "4h"
+    ],
+    index=1
+  )
+
+  try:
+
+    chart_rows = market.get_klines(
+      result["symbol"],
+      chart_interval,
+      100
+    )
+
+    chart_data = pd.DataFrame(
+      chart_rows,
+      columns=[
+        "open_time",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "close_time",
+        "quote_volume",
+        "trades",
+        "taker_base",
+        "taker_quote",
+        "ignore"
+      ]
+    )
+
+    chart_data["time"] = pd.to_datetime(
+      chart_data["open_time"],
+      unit="ms"
+    )
+
+    chart_data["close"] = pd.to_numeric(
+      chart_data["close"]
+    )
+
+    chart_data = chart_data[
+      ["time", "close"]
+    ].set_index("time")
+
+    st.line_chart(
+      chart_data,
+      height=350
+    )
+
+  except Exception as error:
+
+    st.warning(
+      f"Chart unavailable: {error}"
     )
 
 
-    # ======================================
-    # MARKET METRICS
-    # ======================================
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    c1.metric(
-        "Price",
-        f"${result['price']:,.4f}"
-    )
-
-    c2.metric(
-        "24h Change",
-        f"{result['change_percent']:+.2f}%"
-    )
-
-    c3.metric(
-        "24h Volume",
-        f"${result['volume']:,.0f}"
-    )
-
-    c4.metric(
-        "Volume Activity",
-        result["volume_activity"]
-    )
-
-    st.markdown("### ðŸŽ¯ Intelligence Snapshot")
-    snap1, snap2, snap3, snap4 = st.columns(4)
-
-    snap1.metric("Momentum", result["momentum"])
-    snap2.metric("Order-Book", result["order_pressure"])
-    snap3.metric("Regime", result["market_regime"])
-    snap4.metric("Agent Signal", result["signal"])
-
-
-    # ======================================
-    # PRICE CHART
-    # ======================================
-
-    st.subheader("ðŸ“ˆ Live Price Chart")
-
-    chart_interval = st.selectbox(
-        "Chart timeframe",
-        [
-            "1m",
-            "5m",
-            "15m",
-            "1h",
-            "4h"
-        ],
-        index=1
-    )
-
-    try:
-
-        chart_rows = market.get_klines(
-            result["symbol"],
-            chart_interval,
-            100
-        )
-
-        chart_data = pd.DataFrame(
-            chart_rows,
-            columns=[
-                "open_time",
-                "open",
-                "high",
-                "low",
-                "close",
-                "volume",
-                "close_time",
-                "quote_volume",
-                "trades",
-                "taker_base",
-                "taker_quote",
-                "ignore"
-            ]
-        )
-
-        chart_data["time"] = pd.to_datetime(
-            chart_data["open_time"],
-            unit="ms"
-        )
+  st.divider()
 
-        chart_data["close"] = pd.to_numeric(
-            chart_data["close"]
-        )
 
-        chart_data = chart_data[
-            ["time", "close"]
-        ].set_index("time")
+  # ======================================
+  # MULTI TIMEFRAME
+  # ======================================
 
-        st.line_chart(
-            chart_data,
-            height=350
-        )
+  st.subheader(
+    " Multi-Timeframe Momentum"
+  )
 
-    except Exception as error:
+  timeframe_rows = []
 
-        st.warning(
-            f"Chart unavailable: {error}"
-        )
+  for interval, data in result[
+    "timeframes"
+  ].items():
 
+    timeframe_rows.append({
+      "Timeframe": interval,
+      "Momentum": data["momentum"],
+      "Change": f"{data['change']:+.2f}%",
+      "Score": data["score"]
+    })
 
-    st.divider()
+  st.dataframe(
+    timeframe_rows,
+    use_container_width=True,
+    hide_index=True
+  )
 
+  st.metric(
+    "Multi-Timeframe Score",
+    f"{result['multi_score']:.0f}/100"
+  )
 
-    # ======================================
-    # MULTI TIMEFRAME
-    # ======================================
 
-    st.subheader(
-        "â±ï¸ Multi-Timeframe Momentum"
-    )
+  st.divider()
 
-    timeframe_rows = []
 
-    for interval, data in result[
-        "timeframes"
-    ].items():
+  # ======================================
+  # MOMENTUM
+  # ======================================
 
-        timeframe_rows.append({
-            "Timeframe": interval,
-            "Momentum": data["momentum"],
-            "Change": f"{data['change']:+.2f}%",
-            "Score": data["score"]
-        })
+  st.subheader(
+    " Momentum Engine"
+  )
 
-    st.dataframe(
-        timeframe_rows,
-        use_container_width=True,
-        hide_index=True
-    )
+  m1, m2 = st.columns(2)
 
-    st.metric(
-        "Multi-Timeframe Score",
-        f"{result['multi_score']:.0f}/100"
-    )
+  m1.metric(
+    "Momentum",
+    result["momentum"]
+  )
 
+  m2.metric(
+    "Momentum Score",
+    f"{result['momentum_score']}/100"
+  )
 
-    st.divider()
+  st.progress(
+    result["momentum_score"] / 100
+  )
 
 
-    # ======================================
-    # MOMENTUM
-    # ======================================
+  st.divider()
 
-    st.subheader(
-        "ðŸ“ˆ Momentum Engine"
-    )
 
-    m1, m2 = st.columns(2)
+  # ======================================
+  # ORDER BOOK
+  # ======================================
 
-    m1.metric(
-        "Momentum",
-        result["momentum"]
-    )
+  st.subheader(
+    " Order-Book Intelligence"
+  )
 
-    m2.metric(
-        "Momentum Score",
-        f"{result['momentum_score']}/100"
-    )
+  o1, o2, o3 = st.columns(3)
 
-    st.progress(
-        result["momentum_score"] / 100
-    )
+  o1.metric(
+    "Pressure",
+    result["order_pressure"]
+  )
 
+  o2.metric(
+    "Bid Share",
+    f"{result['bid_share'] * 100:.1f}%"
+  )
 
-    st.divider()
+  o3.metric(
+    "Imbalance",
+    f"{result['imbalance'] * 100:+.1f}%"
+  )
 
 
-    # ======================================
-    # ORDER BOOK
-    # ======================================
+  st.divider()
 
-    st.subheader(
-        "ðŸ“– Order-Book Intelligence"
-    )
 
-    o1, o2, o3 = st.columns(3)
+  # ======================================
+  # REGIME
+  # ======================================
 
-    o1.metric(
-        "Pressure",
-        result["order_pressure"]
-    )
+  st.subheader(
+    " Market Regime"
+  )
 
-    o2.metric(
-        "Bid Share",
-        f"{result['bid_share'] * 100:.1f}%"
-    )
+  st.info(
+    result["market_regime"]
+  )
 
-    o3.metric(
-        "Imbalance",
-        f"{result['imbalance'] * 100:+.1f}%"
-    )
 
+  st.divider()
 
-    st.divider()
 
+  # ======================================
+  # AGENT
+  # ======================================
 
-    # ======================================
-    # REGIME
-    # ======================================
+  st.subheader(
+    " Agent Decision"
+  )
 
-    st.subheader(
-        "ðŸŒ Market Regime"
-    )
+  d1, d2 = st.columns(2)
 
-    st.info(
-        result["market_regime"]
-    )
+  d1.metric(
+    "Signal",
+    result["signal"]
+  )
 
+  d2.metric(
+    "Confidence",
+    f"{result['confidence']}%"
+  )
 
-    st.divider()
+  st.progress(
+    result["confidence"] / 100
+  )
 
+  st.markdown(
+    f"**Decision logic:** {result['momentum']} momentum | "
+    f"{result['order_pressure']} | "
+    f"{result['volume_activity']} volume | "
+    f"{result['market_regime']} regime"
+  )
 
-    # ======================================
-    # AGENT
-    # ======================================
 
-    st.subheader(
-        "ðŸ¤– Agent Decision"
-    )
+  st.subheader(
+    " Agent Reasoning"
+  )
 
-    d1, d2 = st.columns(2)
+  st.info(
+    result["reasoning"]
+  )
 
-    d1.metric(
-        "Signal",
-        result["signal"]
-    )
 
-    d2.metric(
-        "Confidence",
-        f"{result['confidence']}%"
-    )
+  st.divider()
 
-    st.progress(
-        result["confidence"] / 100
-    )
 
-    st.markdown(
-        f"**Decision logic:** {result['momentum']} momentum â€¢ "
-        f"{result['order_pressure']} â€¢ "
-        f"{result['volume_activity']} volume â€¢ "
-        f"{result['market_regime']} regime"
-    )
+  # ======================================
+  # RISK
+  # ======================================
 
+  st.subheader(
+    " Risk Engine"
+  )
 
-    st.subheader(
-        "ðŸ§  Agent Reasoning"
-    )
+  r1, r2, r3 = st.columns(3)
 
-    st.info(
-        result["reasoning"]
-    )
+  r1.metric(
+    "Risk Level",
+    result["risk_level"]
+  )
 
+  r2.metric(
+    "Risk Score",
+    f"{result['risk_score']}/100"
+  )
 
-    st.divider()
+  r3.metric(
+    "Allocation",
+    f"${result['paper_allocation']:.2f}"
+  )
 
+  st.progress(
+    result["risk_score"] / 100
+  )
 
-    # ======================================
-    # RISK
-    # ======================================
 
-    st.subheader(
-        "ðŸ›¡ï¸ Risk Engine"
-    )
+  st.divider()
 
-    r1, r2, r3 = st.columns(3)
 
-    r1.metric(
-        "Risk Level",
-        result["risk_level"]
-    )
+  # ======================================
+  # POSITION
+  # ======================================
 
-    r2.metric(
-        "Risk Score",
-        f"{result['risk_score']}/100"
-    )
+  st.subheader(
+    " Position Analysis"
+  )
 
-    r3.metric(
-        "Allocation",
-        f"${result['paper_allocation']:.2f}"
-    )
+  p1, p2 = st.columns(2)
 
-    st.progress(
-        result["risk_score"] / 100
-    )
+  p1.metric(
+    "Suggested Allocation",
+    f"${result['paper_allocation']:.2f}"
+  )
 
+  p2.metric(
+    "Estimated Quantity",
+    f"{result['quantity']:.8f}"
+  )
 
-    st.divider()
 
+  # ======================================
+  # ORDER BOOK
+  # ======================================
 
-    # ======================================
-    # POSITION
-    # ======================================
+  with st.expander(
+    " View Order-Book Levels"
+  ):
 
-    st.subheader(
-        "ðŸ“ Position Analysis"
-    )
+    left, right = st.columns(2)
 
-    p1, p2 = st.columns(2)
+    with left:
 
-    p1.metric(
-        "Suggested Allocation",
-        f"${result['paper_allocation']:.2f}"
-    )
+      st.write("Bids Bids")
 
-    p2.metric(
-        "Estimated Quantity",
-        f"{result['quantity']:.8f}"
-    )
+      st.dataframe(
+        result["bids"][:10],
+        use_container_width=True
+      )
 
+    with right:
 
-    # ======================================
-    # ORDER BOOK
-    # ======================================
+      st.write("Asks Asks")
 
-    with st.expander(
-        "ðŸ“š View Order-Book Levels"
-    ):
+      st.dataframe(
+        result["asks"][:10],
+        use_container_width=True
+      )
 
-        left, right = st.columns(2)
 
-        with left:
-
-            st.write("ðŸŸ¢ Bids")
-
-            st.dataframe(
-                result["bids"][:10],
-                use_container_width=True
-            )
-
-        with right:
-
-            st.write("ðŸ”´ Asks")
-
-            st.dataframe(
-                result["asks"][:10],
-                use_container_width=True
-            )
-
-
-    st.caption(
-        "Live market data retrieved through the Binance public market-data adapter."
-    )
+  st.caption(
+    "Live market data retrieved through the Binance public market-data adapter."
+  )
 
 
 else:
 
-    # ======================================
-    # LANDING
-    # ======================================
+  # ======================================
+  # LANDING
+  # ======================================
 
-    st.divider()
+  st.divider()
 
-    st.subheader(
-        "ðŸ§  Agentic Alpha Pipeline"
-    )
+  st.subheader(
+    " Agentic Alpha Pipeline"
+  )
 
-    st.markdown(
-        """
-        **ðŸ“¡ PERCEPTION**
+  st.markdown(
+    """
+    ** PERCEPTION**
 
-        Live Binance market data
+    Live Binance market data
 
-        â†“
+    ->
 
-        **ðŸ“Š ANALYSIS**
+    ** ANALYSIS**
 
-        Price â€¢ Volume â€¢ Order Book
+    Price | Volume | Order Book
 
-        â†“
+    ->
 
-        **â±ï¸ MULTI-TIMEFRAME**
+    ** MULTI-TIMEFRAME**
 
-        1m â€¢ 5m â€¢ 15m â€¢ 1h â€¢ 4h
+    1m | 5m | 15m | 1h | 4h
 
-        â†“
+    ->
 
-        **ðŸ§  REASONING**
+    ** REASONING**
 
-        Momentum â€¢ Regime â€¢ Confidence
+    Momentum | Regime | Confidence
 
-        â†“
+    ->
 
-        **ðŸ›¡ï¸ RISK**
+    ** RISK**
 
-        Risk Score â€¢ Position Sizing
+    Risk Score | Position Sizing
 
-        â†“
+    ->
 
-        **ðŸ¤– DECISION**
+    ** DECISION**
 
-        BUY / SELL / HOLD
-        """
-    )
+    BUY / SELL / HOLD
+    """
+  )
 
-    st.divider()
-    st.caption(
-        "Agentic Alpha â€¢ Binance market intelligence â€¢ "
-        "Human-controlled execution boundary"
-    )
+  st.divider()
+  st.caption(
+    "Agentic Alpha | Binance market intelligence | "
+    "Human-controlled execution boundary"
+)
