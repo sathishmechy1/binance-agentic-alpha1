@@ -1,11 +1,12 @@
 import streamlit as st
+import pandas as pd
 
 from mcp_servers.binance_mcp import BinanceMCPServer
 from core.agent import AgenticAlphaOS
 
 
 # ==========================================
-# PAGE CONFIG
+# PAGE
 # ==========================================
 
 st.set_page_config(
@@ -22,7 +23,7 @@ st.set_page_config(
 st.title("🤖 Agentic Alpha")
 
 st.caption(
-    "Binance Agent OS • MCP-ready market intelligence"
+    "Binance Agent OS • MCP-ready autonomous market intelligence"
 )
 
 st.warning(
@@ -32,7 +33,7 @@ st.warning(
 
 
 # ==========================================
-# MAIN PAGE CONTROLS
+# MAIN CONTROLS
 # ==========================================
 
 st.subheader("⚙️ Market Controls")
@@ -49,14 +50,14 @@ with col1:
             "BNBUSDT",
             "SOLUSDT",
             "XRPUSDT"
-        ],
-        index=0
+        ]
     )
 
 
 with col2:
 
     st.write("")
+
     st.write("")
 
     analyze = st.button(
@@ -94,7 +95,7 @@ if analyze:
         )
 
         with st.spinner(
-            "🤖 Agent analyzing Binance market data..."
+            "🤖 Agent analyzing live Binance data..."
         ):
 
             result = agent.analyze(symbol)
@@ -104,6 +105,7 @@ if analyze:
     except Exception as error:
 
         st.session_state.result = None
+
         st.session_state.error = str(error)
 
 
@@ -121,26 +123,17 @@ if st.session_state.error:
         st.session_state.error
     )
 
-    st.info(
-        "The application automatically tried "
-        "multiple public Binance market-data endpoints."
-    )
-
     st.stop()
 
 
 # ==========================================
-# RESULT
+# RESULTS
 # ==========================================
 
 result = st.session_state.result
 
 
 if result:
-
-    # ======================================
-    # MARKET INTELLIGENCE
-    # ======================================
 
     st.divider()
 
@@ -183,7 +176,7 @@ if result:
     # MOMENTUM
     # ======================================
 
-    st.subheader("📈 Momentum")
+    st.subheader("📈 Momentum Engine")
 
     m1, m2 = st.columns(2)
 
@@ -197,6 +190,10 @@ if result:
         f"{result['momentum_score']}/100"
     )
 
+    st.progress(
+        result["momentum_score"] / 100
+    )
+
 
     st.divider()
 
@@ -205,7 +202,9 @@ if result:
     # ORDER BOOK
     # ======================================
 
-    st.subheader("📖 Order-Book Intelligence")
+    st.subheader(
+        "📖 Order-Book Intelligence"
+    )
 
     o1, o2, o3 = st.columns(3)
 
@@ -235,7 +234,7 @@ if result:
     st.subheader("🌐 Market Regime")
 
     st.info(
-        result["market_regime"]
+        f"Current regime: **{result['market_regime']}**"
     )
 
 
@@ -260,8 +259,16 @@ if result:
         f"{result['confidence']}%"
     )
 
+    st.progress(
+        result["confidence"] / 100
+    )
 
-    st.write("### 🧠 Agent Reasoning")
+
+    # ======================================
+    # REASONING
+    # ======================================
+
+    st.subheader("🧠 Agent Reasoning")
 
     st.info(
         result["reasoning"]
@@ -272,7 +279,7 @@ if result:
 
 
     # ======================================
-    # RISK ENGINE
+    # RISK
     # ======================================
 
     st.subheader("🛡️ Risk Engine")
@@ -295,6 +302,11 @@ if result:
     )
 
 
+    st.progress(
+        result["risk_score"] / 100
+    )
+
+
     st.success(
         "Risk engine active. "
         "Real execution is disabled."
@@ -310,32 +322,25 @@ if result:
 
     st.subheader("🧪 Paper Execution")
 
-    p1, p2 = st.columns(2)
+    p1, p2, p3 = st.columns(3)
 
-    with p1:
+    p1.metric(
+        "Decision",
+        result["signal"]
+    )
 
-        st.write(
-            f"**Decision:** {result['signal']}"
-        )
+    p2.metric(
+        "Allocation",
+        f"${result['paper_allocation']:.2f}"
+    )
 
-        st.write(
-            f"**Allocation:** "
-            f"${result['paper_allocation']:.2f}"
-        )
-
-    with p2:
-
-        st.write(
-            f"**Estimated Quantity:** "
-            f"{result['quantity']:.8f}"
-        )
-
-        st.write(
-            "**Execution:** PAPER ONLY"
-        )
-
+    p3.metric(
+        "Quantity",
+        f"{result['quantity']:.8f}"
+    )
 
     st.info(
+        "🛡️ PAPER TRADE ONLY — "
         "No real Binance order was submitted."
     )
 
@@ -377,7 +382,7 @@ if result:
     # ======================================
 
     st.caption(
-        f"Market-data endpoint: "
+        f"Live data endpoint: "
         f"{result['endpoint']}"
     )
 
@@ -385,47 +390,55 @@ if result:
 else:
 
     # ======================================
-    # INITIAL PAGE
+    # LANDING PAGE
     # ======================================
 
     st.divider()
 
-    st.subheader("🧠 Agentic Alpha Pipeline")
+    st.subheader(
+        "🧠 Agentic Alpha Pipeline"
+    )
 
     st.markdown(
         """
-        **PERCEPTION**
+        ### PERCEPTION
 
-        Live Binance market data
-
-        ↓
-
-        **ANALYSIS**
-
-        Price • Volume • Momentum • Order Book
+        📡 Live Binance market data
 
         ↓
 
-        **REASONING**
+        ### ANALYSIS
 
-        Market regime + confidence
+        📈 Price • Volume • Momentum
 
-        ↓
-
-        **RISK**
-
-        Risk score + allocation
+        📖 Order-book imbalance
 
         ↓
 
-        **DECISION**
+        ### REASONING
 
-        BUY / SELL / HOLD
+        🧠 Market regime
+
+        🎯 Confidence scoring
 
         ↓
 
-        **EXECUTION**
+        ### RISK
 
-        Paper trading only
+        🛡️ Risk score
+
+        💰 Position sizing
+
+        ↓
+
+        ### DECISION
+
+        🤖 BUY / SELL / HOLD
+
+        ↓
+
+        ### EXECUTION
+
+        🧪 Paper trading only
         """
-    )
+            )
