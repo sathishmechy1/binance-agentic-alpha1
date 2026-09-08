@@ -11,7 +11,7 @@ from core.agent import AgenticAlphaOS
 
 st.set_page_config(
     page_title="Agentic Alpha",
-    page_icon="🤖",
+    page_icon="ðŸ¤–",
     layout="wide"
 )
 
@@ -20,18 +20,30 @@ st.set_page_config(
 # HEADER
 # ==========================================
 
-st.title("🤖 Agentic Alpha")
+st.title("ðŸ¤– Agentic Alpha")
 
 st.caption(
-    "Binance Agent OS • MCP-ready autonomous market intelligence"
+    "Autonomous Market Intelligence â€¢ Binance market data â€¢ Explainable agent reasoning"
 )
+
+st.markdown(
+    """
+    **Agentic Alpha** turns live market data into a structured decision:
+    perception â†’ analysis â†’ multi-timeframe reasoning â†’ risk â†’ decision.
+    """
+)
+
+s1, s2, s3 = st.columns(3)
+s1.metric("DATA", "LIVE")
+s2.metric("ENGINE", "AGENTIC ALPHA")
+s3.metric("EXECUTION", "DISABLED")
 
 
 # ==========================================
 # MARKET CONTROLS
 # ==========================================
 
-st.subheader("⚙️ Market Controls")
+st.subheader("âš™ï¸ Market Controls")
 
 col1, col2 = st.columns([2, 1])
 
@@ -55,7 +67,7 @@ with col2:
     st.write("")
 
     analyze = st.button(
-        "🔍 Analyze Market",
+        "ðŸ” Analyze Market",
         type="primary",
         use_container_width=True
     )
@@ -76,20 +88,21 @@ if "error" not in st.session_state:
 # RUN AGENT
 # ==========================================
 
+market = BinanceMCPServer()
+
+
 if analyze:
 
     st.session_state.error = None
 
     try:
 
-        market = BinanceMCPServer()
-
         agent = AgenticAlphaOS(
             market_adapter=market
         )
 
         with st.spinner(
-            "🤖 Agent analyzing live Binance data..."
+            "ðŸ¤– Agent analyzing live Binance data..."
         ):
 
             result = agent.analyze(symbol)
@@ -110,7 +123,7 @@ if analyze:
 if st.session_state.error:
 
     st.error(
-        "❌ Market-data request failed."
+        "âŒ Market-data request failed."
     )
 
     st.code(
@@ -132,7 +145,7 @@ if result:
     st.divider()
 
     st.header(
-        f"📊 {result['symbol']} Market Intelligence"
+        f"ðŸ“Š {result['symbol']} Market Intelligence"
     )
 
 
@@ -162,12 +175,20 @@ if result:
         result["volume_activity"]
     )
 
+    st.markdown("### ðŸŽ¯ Intelligence Snapshot")
+    snap1, snap2, snap3, snap4 = st.columns(4)
+
+    snap1.metric("Momentum", result["momentum"])
+    snap2.metric("Order-Book", result["order_pressure"])
+    snap3.metric("Regime", result["market_regime"])
+    snap4.metric("Agent Signal", result["signal"])
+
 
     # ======================================
     # PRICE CHART
     # ======================================
 
-    st.subheader("📈 Live Price Chart")
+    st.subheader("ðŸ“ˆ Live Price Chart")
 
     chart_interval = st.selectbox(
         "Chart timeframe",
@@ -240,7 +261,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "⏱️ Multi-Timeframe Momentum"
+        "â±ï¸ Multi-Timeframe Momentum"
     )
 
     timeframe_rows = []
@@ -276,7 +297,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "📈 Momentum Engine"
+        "ðŸ“ˆ Momentum Engine"
     )
 
     m1, m2 = st.columns(2)
@@ -304,7 +325,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "📖 Order-Book Intelligence"
+        "ðŸ“– Order-Book Intelligence"
     )
 
     o1, o2, o3 = st.columns(3)
@@ -333,7 +354,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "🌐 Market Regime"
+        "ðŸŒ Market Regime"
     )
 
     st.info(
@@ -349,7 +370,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "🤖 Agent Decision"
+        "ðŸ¤– Agent Decision"
     )
 
     d1, d2 = st.columns(2)
@@ -368,9 +389,16 @@ if result:
         result["confidence"] / 100
     )
 
+    st.markdown(
+        f"**Decision logic:** {result['momentum']} momentum â€¢ "
+        f"{result['order_pressure']} â€¢ "
+        f"{result['volume_activity']} volume â€¢ "
+        f"{result['market_regime']} regime"
+    )
+
 
     st.subheader(
-        "🧠 Agent Reasoning"
+        "ðŸ§  Agent Reasoning"
     )
 
     st.info(
@@ -386,7 +414,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "🛡️ Risk Engine"
+        "ðŸ›¡ï¸ Risk Engine"
     )
 
     r1, r2, r3 = st.columns(3)
@@ -419,7 +447,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "📐 Position Analysis"
+        "ðŸ“ Position Analysis"
     )
 
     p1, p2 = st.columns(2)
@@ -440,14 +468,14 @@ if result:
     # ======================================
 
     with st.expander(
-        "📚 View Order-Book Levels"
+        "ðŸ“š View Order-Book Levels"
     ):
 
         left, right = st.columns(2)
 
         with left:
 
-            st.write("🟢 Bids")
+            st.write("ðŸŸ¢ Bids")
 
             st.dataframe(
                 result["bids"][:10],
@@ -456,7 +484,7 @@ if result:
 
         with right:
 
-            st.write("🔴 Asks")
+            st.write("ðŸ”´ Asks")
 
             st.dataframe(
                 result["asks"][:10],
@@ -465,8 +493,7 @@ if result:
 
 
     st.caption(
-        f"Market-data endpoint: "
-        f"{result['endpoint']}"
+        "Live market data retrieved through the Binance public market-data adapter."
     )
 
 
@@ -479,43 +506,49 @@ else:
     st.divider()
 
     st.subheader(
-        "🧠 Agentic Alpha Pipeline"
+        "ðŸ§  Agentic Alpha Pipeline"
     )
 
     st.markdown(
         """
-        **📡 PERCEPTION**
+        **ðŸ“¡ PERCEPTION**
 
         Live Binance market data
 
-        ↓
+        â†“
 
-        **📊 ANALYSIS**
+        **ðŸ“Š ANALYSIS**
 
-        Price • Volume • Order Book
+        Price â€¢ Volume â€¢ Order Book
 
-        ↓
+        â†“
 
-        **⏱️ MULTI-TIMEFRAME**
+        **â±ï¸ MULTI-TIMEFRAME**
 
-        1m • 5m • 15m • 1h • 4h
+        1m â€¢ 5m â€¢ 15m â€¢ 1h â€¢ 4h
 
-        ↓
+        â†“
 
-        **🧠 REASONING**
+        **ðŸ§  REASONING**
 
-        Momentum • Regime • Confidence
+        Momentum â€¢ Regime â€¢ Confidence
 
-        ↓
+        â†“
 
-        **🛡️ RISK**
+        **ðŸ›¡ï¸ RISK**
 
-        Risk Score • Position Sizing
+        Risk Score â€¢ Position Sizing
 
-        ↓
+        â†“
 
-        **🤖 DECISION**
+        **ðŸ¤– DECISION**
 
         BUY / SELL / HOLD
         """
+    )
+
+    st.divider()
+    st.caption(
+        "Agentic Alpha â€¢ Binance market intelligence â€¢ "
+        "Human-controlled execution boundary"
     )
