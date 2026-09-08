@@ -25,13 +25,6 @@ st.title("🤖 Agentic Alpha")
 st.caption(
     "Binance Agent OS • MCP-ready autonomous market intelligence"
 )
-
-st.warning(
-    "🛡️ READ-ONLY / PAPER TRADING MODE — "
-    "No Binance orders are placed."
-)
-
-
 # ==========================================
 # MAIN CONTROLS
 # ==========================================
