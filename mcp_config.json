@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "binance-trading": {
+      "command": "python",
+      "args": ["mcp_servers/binance_mcp.py"]
+    },
+    "market-sentiment": {
+      "command": "python",
+      "args": ["mcp_servers/sentiment_mcp.py"]
+    }
+  }
+}
