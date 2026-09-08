@@ -3,9 +3,9 @@ class AgenticAlphaOS:
     def __init__(self, market_adapter):
         self.market = market_adapter
 
-    # -----------------------------
+    # ==========================================
     # ORDER BOOK ANALYSIS
-    # -----------------------------
+    # ==========================================
 
     @staticmethod
     def order_book_analysis(bids, asks):
@@ -50,9 +50,9 @@ class AgenticAlphaOS:
             "pressure": pressure
         }
 
-    # -----------------------------
+    # ==========================================
     # MOMENTUM
-    # -----------------------------
+    # ==========================================
 
     @staticmethod
     def momentum_analysis(change):
@@ -60,26 +60,26 @@ class AgenticAlphaOS:
         if change >= 3:
             return "STRONG BULLISH", 90
 
-        if change >= 1:
+        elif change >= 1:
             return "BULLISH", 75
 
-        if change > 0.25:
+        elif change > 0.25:
             return "MILD BULLISH", 60
 
-        if change <= -3:
+        elif change <= -3:
             return "STRONG BEARISH", 10
 
-        if change <= -1:
+        elif change <= -1:
             return "BEARISH", 25
 
-        if change < -0.25:
+        elif change < -0.25:
             return "MILD BEARISH", 40
 
         return "NEUTRAL", 50
 
-    # -----------------------------
-    # VOLUME ANALYSIS
-    # -----------------------------
+    # ==========================================
+    # VOLUME
+    # ==========================================
 
     @staticmethod
     def volume_analysis(volume):
@@ -87,17 +87,17 @@ class AgenticAlphaOS:
         if volume >= 1_000_000_000:
             return "VERY HIGH"
 
-        if volume >= 500_000_000:
+        elif volume >= 500_000_000:
             return "HIGH"
 
-        if volume >= 100_000_000:
+        elif volume >= 100_000_000:
             return "NORMAL"
 
         return "LOW"
 
-    # -----------------------------
+    # ==========================================
     # MARKET REGIME
-    # -----------------------------
+    # ==========================================
 
     @staticmethod
     def market_regime(momentum, pressure):
@@ -114,10 +114,16 @@ class AgenticAlphaOS:
             "MILD BEARISH"
         }
 
-        if momentum in bullish and pressure == "BUY PRESSURE":
+        if (
+            momentum in bullish
+            and pressure == "BUY PRESSURE"
+        ):
             return "BULLISH TREND"
 
-        if momentum in bearish and pressure == "SELL PRESSURE":
+        if (
+            momentum in bearish
+            and pressure == "SELL PRESSURE"
+        ):
             return "BEARISH TREND"
 
         if momentum == "NEUTRAL":
@@ -125,12 +131,58 @@ class AgenticAlphaOS:
 
         return "MIXED / TRANSITION"
 
-    # -----------------------------
-    # AGENT DECISION
-    # -----------------------------
+    # ==========================================
+    # CONFIDENCE
+    # ==========================================
 
     @staticmethod
-    def decision(momentum, pressure, confidence):
+    def calculate_confidence(
+        momentum,
+        pressure,
+        volume_activity
+    ):
+
+        confidence = 50
+
+        # Order-book confirmation
+        if pressure in {
+            "BUY PRESSURE",
+            "SELL PRESSURE"
+        }:
+            confidence += 15
+
+        # Momentum strength
+        if momentum in {
+            "STRONG BULLISH",
+            "STRONG BEARISH"
+        }:
+            confidence += 20
+
+        elif momentum in {
+            "BULLISH",
+            "BEARISH"
+        }:
+            confidence += 10
+
+        # Volume confirmation
+        if volume_activity == "VERY HIGH":
+            confidence += 10
+
+        elif volume_activity == "HIGH":
+            confidence += 5
+
+        return min(confidence, 95)
+
+    # ==========================================
+    # DECISION
+    # ==========================================
+
+    @staticmethod
+    def make_decision(
+        momentum,
+        pressure,
+        confidence
+    ):
 
         bullish = {
             "BULLISH",
@@ -158,16 +210,85 @@ class AgenticAlphaOS:
 
         return "HOLD"
 
-    # -----------------------------
+    # ==========================================
+    # RISK
+    # ==========================================
+
+    @staticmethod
+    def risk_analysis(
+        signal,
+        confidence,
+        change
+    ):
+
+        if signal == "HOLD":
+            return 25, "LOW"
+
+        if abs(change) >= 5:
+            return 75, "HIGH"
+
+        if confidence >= 80:
+            return 35, "MEDIUM"
+
+        return 50, "MEDIUM"
+
+    # ==========================================
+    # REASONING
+    # ==========================================
+
+    @staticmethod
+    def generate_reasoning(
+        momentum,
+        pressure,
+        volume_activity,
+        regime,
+        signal,
+        confidence
+    ):
+
+        if signal == "BUY":
+
+            return (
+                f"BUY setup detected. "
+                f"Price momentum is {momentum.lower()} "
+                f"and the order book shows {pressure.lower()}. "
+                f"Volume activity is {volume_activity.lower()}, "
+                f"providing additional confirmation. "
+                f"The current market regime is {regime.lower()}. "
+                f"Decision confidence is {confidence}%."
+            )
+
+        if signal == "SELL":
+
+            return (
+                f"SELL setup detected. "
+                f"Price momentum is {momentum.lower()} "
+                f"and the order book shows {pressure.lower()}. "
+                f"Volume activity is {volume_activity.lower()}. "
+                f"The current market regime is {regime.lower()}. "
+                f"Decision confidence is {confidence}%."
+            )
+
+        return (
+            f"HOLD decision. The current combination of "
+            f"{momentum.lower()} momentum and "
+            f"{pressure.lower()} does not provide enough "
+            f"confirmation for an executable directional signal. "
+            f"The agent is waiting for stronger confirmation."
+        )
+
+    # ==========================================
     # COMPLETE ANALYSIS
-    # -----------------------------
+    # ==========================================
 
     def analyze(self, symbol):
 
         market = self.market.get_market_data(symbol)
 
         price = market["price"]
+
         change = market["change_percent"]
+
         volume = market["volume"]
 
         # Order book
@@ -182,8 +303,8 @@ class AgenticAlphaOS:
         )
 
         # Volume
-        volume_activity = self.volume_analysis(
-            volume
+        volume_activity = (
+            self.volume_analysis(volume)
         )
 
         # Market regime
@@ -192,71 +313,30 @@ class AgenticAlphaOS:
             book["pressure"]
         )
 
-        # -------------------------
-        # CONFIDENCE MODEL
-        # -------------------------
-
-        confidence = 50
-
-        if book["pressure"] == "BUY PRESSURE":
-            confidence += 20
-
-        elif book["pressure"] == "SELL PRESSURE":
-            confidence += 20
-
-        if momentum in {
-            "STRONG BULLISH",
-            "STRONG BEARISH"
-        }:
-            confidence += 20
-
-        elif momentum in {
-            "BULLISH",
-            "BEARISH"
-        }:
-            confidence += 10
-
-        if volume_activity in {
-            "HIGH",
-            "VERY HIGH"
-        }:
-            confidence += 5
-
-        confidence = min(
-            confidence,
-            95
+        # Confidence
+        confidence = self.calculate_confidence(
+            momentum,
+            book["pressure"],
+            volume_activity
         )
 
-        # -------------------------
-        # DECISION
-        # -------------------------
-
-        signal = self.decision(
+        # Decision
+        signal = self.make_decision(
             momentum,
             book["pressure"],
             confidence
         )
 
-        # -------------------------
-        # RISK SCORE
-        # -------------------------
+        # Risk
+        risk_score, risk_level = (
+            self.risk_analysis(
+                signal,
+                confidence,
+                change
+            )
+        )
 
-        if signal == "HOLD":
-            risk_score = 25
-            risk_level = "LOW"
-
-        elif confidence >= 80:
-            risk_score = 35
-            risk_level = "MEDIUM"
-
-        else:
-            risk_score = 55
-            risk_level = "MEDIUM"
-
-        # -------------------------
-        # PAPER POSITION
-        # -------------------------
-
+        # Paper allocation
         paper_allocation = 50.0
 
         quantity = (
@@ -265,59 +345,57 @@ class AgenticAlphaOS:
             else 0
         )
 
-        # -------------------------
-        # REASONING
-        # -------------------------
-
-        if signal == "BUY":
-
-            reasoning = (
-                f"BUY setup detected. "
-                f"{book['pressure']} is supported by "
-                f"{momentum} momentum. "
-                f"Confidence is {confidence}%."
-            )
-
-        elif signal == "SELL":
-
-            reasoning = (
-                f"SELL setup detected. "
-                f"{book['pressure']} is supported by "
-                f"{momentum} momentum. "
-                f"Confidence is {confidence}%."
-            )
-
-        else:
-
-            reasoning = (
-                f"HOLD: {book['pressure']} is not "
-                f"confirmed by sufficiently strong "
-                f"price momentum. Waiting for confirmation."
-            )
+        # Reasoning
+        reasoning = self.generate_reasoning(
+            momentum,
+            book["pressure"],
+            volume_activity,
+            regime,
+            signal,
+            confidence
+        )
 
         return {
+
             **market,
 
             "momentum": momentum,
+
             "momentum_score": momentum_score,
 
-            "order_pressure": book["pressure"],
-            "bid_share": book["bid_share"],
-            "imbalance": book["imbalance"],
+            "order_pressure":
+                book["pressure"],
 
-            "volume_activity": volume_activity,
+            "bid_share":
+                book["bid_share"],
 
-            "market_regime": regime,
+            "imbalance":
+                book["imbalance"],
 
-            "confidence": confidence,
+            "volume_activity":
+                volume_activity,
 
-            "risk_score": risk_score,
-            "risk_level": risk_level,
+            "market_regime":
+                regime,
 
-            "signal": signal,
+            "confidence":
+                confidence,
 
-            "paper_allocation": paper_allocation,
-            "quantity": quantity,
+            "risk_score":
+                risk_score,
 
-            "reasoning": reasoning
+            "risk_level":
+                risk_level,
+
+            "signal":
+                signal,
+
+            "paper_allocation":
+                paper_allocation,
+
+            "quantity":
+                quantity,
+
+            "reasoning":
+                reasoning
         }
