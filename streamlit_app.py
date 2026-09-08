@@ -11,7 +11,7 @@ from core.agent import AgenticAlphaOS
 
 st.set_page_config(
     page_title="Agentic Alpha",
-    page_icon="ðŸ¤–",
+    page_icon="🤖",
     layout="wide"
 )
 
@@ -20,10 +20,10 @@ st.set_page_config(
 # HEADER
 # ==========================================
 
-st.title("ðŸ¤– Agentic Alpha")
+st.title("🤖 Agentic Alpha")
 
 st.caption(
-    "Binance Agent OS â€¢ MCP-ready autonomous market intelligence"
+    "Binance Agent OS • MCP-ready autonomous market intelligence"
 )
 
 
@@ -31,7 +31,7 @@ st.caption(
 # MARKET CONTROLS
 # ==========================================
 
-st.subheader("âš™ï¸ Market Controls")
+st.subheader("⚙️ Market Controls")
 
 col1, col2 = st.columns([2, 1])
 
@@ -55,7 +55,7 @@ with col2:
     st.write("")
 
     analyze = st.button(
-        "ðŸ” Analyze Market",
+        "🔍 Analyze Market",
         type="primary",
         use_container_width=True
     )
@@ -89,7 +89,7 @@ if analyze:
         )
 
         with st.spinner(
-            "ðŸ¤– Agent analyzing live Binance data..."
+            "🤖 Agent analyzing live Binance data..."
         ):
 
             result = agent.analyze(symbol)
@@ -110,7 +110,7 @@ if analyze:
 if st.session_state.error:
 
     st.error(
-        "âŒ Market-data request failed."
+        "❌ Market-data request failed."
     )
 
     st.code(
@@ -132,7 +132,7 @@ if result:
     st.divider()
 
     st.header(
-        f"ðŸ“Š {result['symbol']} Market Intelligence"
+        f"📊 {result['symbol']} Market Intelligence"
     )
 
 
@@ -167,7 +167,7 @@ if result:
     # PRICE CHART
     # ======================================
 
-    st.subheader("ðŸ“ˆ Live Price Chart")
+    st.subheader("📈 Live Price Chart")
 
     chart_interval = st.selectbox(
         "Chart timeframe",
@@ -240,7 +240,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "â±ï¸ Multi-Timeframe Momentum"
+        "⏱️ Multi-Timeframe Momentum"
     )
 
     timeframe_rows = []
@@ -276,7 +276,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "ðŸ“ˆ Momentum Engine"
+        "📈 Momentum Engine"
     )
 
     m1, m2 = st.columns(2)
@@ -304,7 +304,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "ðŸ“– Order-Book Intelligence"
+        "📖 Order-Book Intelligence"
     )
 
     o1, o2, o3 = st.columns(3)
@@ -333,7 +333,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "ðŸŒ Market Regime"
+        "🌐 Market Regime"
     )
 
     st.info(
@@ -349,7 +349,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "ðŸ¤– Agent Decision"
+        "🤖 Agent Decision"
     )
 
     d1, d2 = st.columns(2)
@@ -370,7 +370,7 @@ if result:
 
 
     st.subheader(
-        "ðŸ§  Agent Reasoning"
+        "🧠 Agent Reasoning"
     )
 
     st.info(
@@ -386,7 +386,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "ðŸ›¡ï¸ Risk Engine"
+        "🛡️ Risk Engine"
     )
 
     r1, r2, r3 = st.columns(3)
@@ -419,7 +419,7 @@ if result:
     # ======================================
 
     st.subheader(
-        "ðŸ“ Position Analysis"
+        "📐 Position Analysis"
     )
 
     p1, p2 = st.columns(2)
@@ -440,14 +440,14 @@ if result:
     # ======================================
 
     with st.expander(
-        "ðŸ“š View Order-Book Levels"
+        "📚 View Order-Book Levels"
     ):
 
         left, right = st.columns(2)
 
         with left:
 
-            st.write("ðŸŸ¢ Bids")
+            st.write("🟢 Bids")
 
             st.dataframe(
                 result["bids"][:10],
@@ -456,7 +456,7 @@ if result:
 
         with right:
 
-            st.write("ðŸ”´ Asks")
+            st.write("🔴 Asks")
 
             st.dataframe(
                 result["asks"][:10],
@@ -479,43 +479,43 @@ else:
     st.divider()
 
     st.subheader(
-        "ðŸ§  Agentic Alpha Pipeline"
+        "🧠 Agentic Alpha Pipeline"
     )
 
     st.markdown(
         """
-        **ðŸ“¡ PERCEPTION**
+        **📡 PERCEPTION**
 
         Live Binance market data
 
-        â†“
+        ↓
 
-        **ðŸ“Š ANALYSIS**
+        **📊 ANALYSIS**
 
-        Price â€¢ Volume â€¢ Order Book
+        Price • Volume • Order Book
 
-        â†“
+        ↓
 
-        **â±ï¸ MULTI-TIMEFRAME**
+        **⏱️ MULTI-TIMEFRAME**
 
-        1m â€¢ 5m â€¢ 15m â€¢ 1h â€¢ 4h
+        1m • 5m • 15m • 1h • 4h
 
-        â†“
+        ↓
 
-        **ðŸ§  REASONING**
+        **🧠 REASONING**
 
-        Momentum â€¢ Regime â€¢ Confidence
+        Momentum • Regime • Confidence
 
-        â†“
+        ↓
 
-        **ðŸ›¡ï¸ RISK**
+        **🛡️ RISK**
 
-        Risk Score â€¢ Position Sizing
+        Risk Score • Position Sizing
 
-        â†“
+        ↓
 
-        **ðŸ¤– DECISION**
+        **🤖 DECISION**
 
         BUY / SELL / HOLD
         """
-      )
+    )
