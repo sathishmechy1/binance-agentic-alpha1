@@ -4,7 +4,34 @@ class AgenticAlphaOS:
         self.market = market_adapter
 
     # ==========================================
-    # ORDER BOOK ANALYSIS
+    # MOMENTUM
+    # ==========================================
+
+    @staticmethod
+    def momentum_from_change(change):
+
+        if change >= 2:
+            return "STRONG BULLISH", 90
+
+        if change >= 0.75:
+            return "BULLISH", 75
+
+        if change > 0.15:
+            return "MILD BULLISH", 60
+
+        if change <= -2:
+            return "STRONG BEARISH", 10
+
+        if change <= -0.75:
+            return "BEARISH", 25
+
+        if change < -0.15:
+            return "MILD BEARISH", 40
+
+        return "NEUTRAL", 50
+
+    # ==========================================
+    # ORDER BOOK
     # ==========================================
 
     @staticmethod
@@ -22,10 +49,11 @@ class AgenticAlphaOS:
 
         total = bid_value + ask_value
 
-        if total <= 0:
+        if total == 0:
+
             return {
                 "bid_share": 0.5,
-                "imbalance": 0.0,
+                "imbalance": 0,
                 "pressure": "BALANCED"
             }
 
@@ -51,46 +79,19 @@ class AgenticAlphaOS:
         }
 
     # ==========================================
-    # MOMENTUM
-    # ==========================================
-
-    @staticmethod
-    def momentum_analysis(change):
-
-        if change >= 3:
-            return "STRONG BULLISH", 90
-
-        elif change >= 1:
-            return "BULLISH", 75
-
-        elif change > 0.25:
-            return "MILD BULLISH", 60
-
-        elif change <= -3:
-            return "STRONG BEARISH", 10
-
-        elif change <= -1:
-            return "BEARISH", 25
-
-        elif change < -0.25:
-            return "MILD BEARISH", 40
-
-        return "NEUTRAL", 50
-
-    # ==========================================
     # VOLUME
     # ==========================================
 
     @staticmethod
-    def volume_analysis(volume):
+    def volume_activity(volume):
 
         if volume >= 1_000_000_000:
             return "VERY HIGH"
 
-        elif volume >= 500_000_000:
+        if volume >= 500_000_000:
             return "HIGH"
 
-        elif volume >= 100_000_000:
+        if volume >= 100_000_000:
             return "NORMAL"
 
         return "LOW"
@@ -114,16 +115,10 @@ class AgenticAlphaOS:
             "MILD BEARISH"
         }
 
-        if (
-            momentum in bullish
-            and pressure == "BUY PRESSURE"
-        ):
+        if momentum in bullish and pressure == "BUY PRESSURE":
             return "BULLISH TREND"
 
-        if (
-            momentum in bearish
-            and pressure == "SELL PRESSURE"
-        ):
+        if momentum in bearish and pressure == "SELL PRESSURE":
             return "BEARISH TREND"
 
         if momentum == "NEUTRAL":
@@ -132,53 +127,59 @@ class AgenticAlphaOS:
         return "MIXED / TRANSITION"
 
     # ==========================================
-    # CONFIDENCE
+    # KLINE MOMENTUM
     # ==========================================
 
-    @staticmethod
-    def calculate_confidence(
-        momentum,
-        pressure,
-        volume_activity
+    def timeframe_analysis(
+        self,
+        symbol,
+        interval
     ):
 
-        confidence = 50
+        rows = self.market.get_klines(
+            symbol,
+            interval,
+            50
+        )
 
-        # Order-book confirmation
-        if pressure in {
-            "BUY PRESSURE",
-            "SELL PRESSURE"
-        }:
-            confidence += 15
+        closes = [
+            float(row[4])
+            for row in rows
+        ]
 
-        # Momentum strength
-        if momentum in {
-            "STRONG BULLISH",
-            "STRONG BEARISH"
-        }:
-            confidence += 20
+        if len(closes) < 2:
 
-        elif momentum in {
-            "BULLISH",
-            "BEARISH"
-        }:
-            confidence += 10
+            return {
+                "interval": interval,
+                "change": 0,
+                "momentum": "NEUTRAL",
+                "score": 50
+            }
 
-        # Volume confirmation
-        if volume_activity == "VERY HIGH":
-            confidence += 10
+        first = closes[0]
+        last = closes[-1]
 
-        elif volume_activity == "HIGH":
-            confidence += 5
+        change = (
+            (last - first) / first
+        ) * 100
 
-        return min(confidence, 95)
+        momentum, score = (
+            self.momentum_from_change(change)
+        )
+
+        return {
+            "interval": interval,
+            "change": change,
+            "momentum": momentum,
+            "score": score
+        }
 
     # ==========================================
     # DECISION
     # ==========================================
 
     @staticmethod
-    def make_decision(
+    def decision(
         momentum,
         pressure,
         confidence
@@ -211,79 +212,14 @@ class AgenticAlphaOS:
         return "HOLD"
 
     # ==========================================
-    # RISK
-    # ==========================================
-
-    @staticmethod
-    def risk_analysis(
-        signal,
-        confidence,
-        change
-    ):
-
-        if signal == "HOLD":
-            return 25, "LOW"
-
-        if abs(change) >= 5:
-            return 75, "HIGH"
-
-        if confidence >= 80:
-            return 35, "MEDIUM"
-
-        return 50, "MEDIUM"
-
-    # ==========================================
-    # REASONING
-    # ==========================================
-
-    @staticmethod
-    def generate_reasoning(
-        momentum,
-        pressure,
-        volume_activity,
-        regime,
-        signal,
-        confidence
-    ):
-
-        if signal == "BUY":
-
-            return (
-                f"BUY setup detected. "
-                f"Price momentum is {momentum.lower()} "
-                f"and the order book shows {pressure.lower()}. "
-                f"Volume activity is {volume_activity.lower()}, "
-                f"providing additional confirmation. "
-                f"The current market regime is {regime.lower()}. "
-                f"Decision confidence is {confidence}%."
-            )
-
-        if signal == "SELL":
-
-            return (
-                f"SELL setup detected. "
-                f"Price momentum is {momentum.lower()} "
-                f"and the order book shows {pressure.lower()}. "
-                f"Volume activity is {volume_activity.lower()}. "
-                f"The current market regime is {regime.lower()}. "
-                f"Decision confidence is {confidence}%."
-            )
-
-        return (
-            f"HOLD decision. The current combination of "
-            f"{momentum.lower()} momentum and "
-            f"{pressure.lower()} does not provide enough "
-            f"confirmation for an executable directional signal. "
-            f"The agent is waiting for stronger confirmation."
-        )
-
-    # ==========================================
     # COMPLETE ANALYSIS
     # ==========================================
 
     def analyze(self, symbol):
 
-        market = self.market.get_market_data(symbol)
+        market = self.market.get_market_data(
+            symbol
+        )
 
         price = market["price"]
 
@@ -297,15 +233,62 @@ class AgenticAlphaOS:
             market["asks"]
         )
 
-        # Momentum
+        # Main momentum
         momentum, momentum_score = (
-            self.momentum_analysis(change)
+            self.momentum_from_change(change)
         )
 
         # Volume
-        volume_activity = (
-            self.volume_analysis(volume)
+        volume_level = self.volume_activity(
+            volume
         )
+
+        # Timeframes
+        timeframes = {}
+
+        for interval in [
+            "1m",
+            "5m",
+            "15m",
+            "1h",
+            "4h"
+        ]:
+
+            try:
+
+                timeframes[interval] = (
+                    self.timeframe_analysis(
+                        symbol,
+                        interval
+                    )
+                )
+
+            except Exception:
+
+                timeframes[interval] = {
+                    "interval": interval,
+                    "change": 0,
+                    "momentum": "UNAVAILABLE",
+                    "score": 50
+                }
+
+        # Average timeframe score
+        valid_scores = [
+            item["score"]
+            for item in timeframes.values()
+            if item["momentum"] != "UNAVAILABLE"
+        ]
+
+        if valid_scores:
+
+            multi_score = (
+                sum(valid_scores)
+                / len(valid_scores)
+            )
+
+        else:
+
+            multi_score = 50
 
         # Market regime
         regime = self.market_regime(
@@ -314,46 +297,104 @@ class AgenticAlphaOS:
         )
 
         # Confidence
-        confidence = self.calculate_confidence(
-            momentum,
-            book["pressure"],
-            volume_activity
+        confidence = 50
+
+        if book["pressure"] != "BALANCED":
+            confidence += 15
+
+        if momentum in {
+            "BULLISH",
+            "BEARISH"
+        }:
+            confidence += 10
+
+        if momentum in {
+            "STRONG BULLISH",
+            "STRONG BEARISH"
+        }:
+            confidence += 20
+
+        if volume_level in {
+            "HIGH",
+            "VERY HIGH"
+        }:
+            confidence += 5
+
+        # Multi-timeframe confirmation
+        if multi_score >= 65:
+            confidence += 5
+
+        elif multi_score <= 35:
+            confidence += 5
+
+        confidence = min(
+            confidence,
+            95
         )
 
         # Decision
-        signal = self.make_decision(
+        signal = self.decision(
             momentum,
             book["pressure"],
             confidence
         )
 
         # Risk
-        risk_score, risk_level = (
-            self.risk_analysis(
-                signal,
-                confidence,
-                change
-            )
-        )
+        if signal == "HOLD":
 
-        # Paper allocation
-        paper_allocation = 50.0
+            risk_score = 25
+            risk_level = "LOW"
+
+        elif abs(change) >= 5:
+
+            risk_score = 75
+            risk_level = "HIGH"
+
+        else:
+
+            risk_score = 45
+            risk_level = "MEDIUM"
+
+        # Paper sizing
+        allocation = 50.0
 
         quantity = (
-            paper_allocation / price
+            allocation / price
             if price > 0
             else 0
         )
 
         # Reasoning
-        reasoning = self.generate_reasoning(
-            momentum,
-            book["pressure"],
-            volume_activity,
-            regime,
-            signal,
-            confidence
-        )
+        if signal == "BUY":
+
+            reasoning = (
+                "Bullish confirmation detected across "
+                f"price momentum and {book['pressure'].lower()}. "
+                f"Multi-timeframe score is "
+                f"{multi_score:.0f}/100. "
+                f"Confidence is {confidence}%."
+            )
+
+        elif signal == "SELL":
+
+            reasoning = (
+                "Bearish confirmation detected across "
+                f"price momentum and {book['pressure'].lower()}. "
+                f"Multi-timeframe score is "
+                f"{multi_score:.0f}/100. "
+                f"Confidence is {confidence}%."
+            )
+
+        else:
+
+            reasoning = (
+                f"HOLD: {book['pressure'].lower()} "
+                f"is not sufficiently confirmed by "
+                f"price momentum. "
+                f"Multi-timeframe score is "
+                f"{multi_score:.0f}/100. "
+                "The agent is waiting for stronger confirmation."
+            )
 
         return {
 
@@ -373,10 +414,16 @@ class AgenticAlphaOS:
                 book["imbalance"],
 
             "volume_activity":
-                volume_activity,
+                volume_level,
 
             "market_regime":
                 regime,
+
+            "timeframes":
+                timeframes,
+
+            "multi_score":
+                multi_score,
 
             "confidence":
                 confidence,
@@ -391,7 +438,7 @@ class AgenticAlphaOS:
                 signal,
 
             "paper_allocation":
-                paper_allocation,
+                allocation,
 
             "quantity":
                 quantity,
