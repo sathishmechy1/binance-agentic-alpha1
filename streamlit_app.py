@@ -25,8 +25,10 @@ st.title("🤖 Agentic Alpha")
 st.caption(
     "Binance Agent OS • MCP-ready autonomous market intelligence"
 )
+
+
 # ==========================================
-# MAIN CONTROLS
+# MARKET CONTROLS
 # ==========================================
 
 st.subheader("⚙️ Market Controls")
@@ -46,7 +48,6 @@ with col1:
         ]
     )
 
-
 with col2:
 
     st.write("")
@@ -61,7 +62,7 @@ with col2:
 
 
 # ==========================================
-# SESSION STATE
+# STATE
 # ==========================================
 
 if "result" not in st.session_state:
@@ -72,7 +73,7 @@ if "error" not in st.session_state:
 
 
 # ==========================================
-# ANALYZE
+# RUN AGENT
 # ==========================================
 
 if analyze:
@@ -109,7 +110,7 @@ if analyze:
 if st.session_state.error:
 
     st.error(
-        "❌ Binance market-data request failed."
+        "❌ Market-data request failed."
     )
 
     st.code(
@@ -119,12 +120,12 @@ if st.session_state.error:
     st.stop()
 
 
+result = st.session_state.result
+
+
 # ==========================================
 # RESULTS
 # ==========================================
-
-result = st.session_state.result
-
 
 if result:
 
@@ -162,6 +163,111 @@ if result:
     )
 
 
+    # ======================================
+    # PRICE CHART
+    # ======================================
+
+    st.subheader("📈 Live Price Chart")
+
+    chart_interval = st.selectbox(
+        "Chart timeframe",
+        [
+            "1m",
+            "5m",
+            "15m",
+            "1h",
+            "4h"
+        ],
+        index=1
+    )
+
+    try:
+
+        chart_rows = market.get_klines(
+            result["symbol"],
+            chart_interval,
+            100
+        )
+
+        chart_data = pd.DataFrame(
+            chart_rows,
+            columns=[
+                "open_time",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "close_time",
+                "quote_volume",
+                "trades",
+                "taker_base",
+                "taker_quote",
+                "ignore"
+            ]
+        )
+
+        chart_data["time"] = pd.to_datetime(
+            chart_data["open_time"],
+            unit="ms"
+        )
+
+        chart_data["close"] = pd.to_numeric(
+            chart_data["close"]
+        )
+
+        chart_data = chart_data[
+            ["time", "close"]
+        ].set_index("time")
+
+        st.line_chart(
+            chart_data,
+            height=350
+        )
+
+    except Exception as error:
+
+        st.warning(
+            f"Chart unavailable: {error}"
+        )
+
+
+    st.divider()
+
+
+    # ======================================
+    # MULTI TIMEFRAME
+    # ======================================
+
+    st.subheader(
+        "⏱️ Multi-Timeframe Momentum"
+    )
+
+    timeframe_rows = []
+
+    for interval, data in result[
+        "timeframes"
+    ].items():
+
+        timeframe_rows.append({
+            "Timeframe": interval,
+            "Momentum": data["momentum"],
+            "Change": f"{data['change']:+.2f}%",
+            "Score": data["score"]
+        })
+
+    st.dataframe(
+        timeframe_rows,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.metric(
+        "Multi-Timeframe Score",
+        f"{result['multi_score']:.0f}/100"
+    )
+
+
     st.divider()
 
 
@@ -169,7 +275,9 @@ if result:
     # MOMENTUM
     # ======================================
 
-    st.subheader("📈 Momentum Engine")
+    st.subheader(
+        "📈 Momentum Engine"
+    )
 
     m1, m2 = st.columns(2)
 
@@ -221,13 +329,15 @@ if result:
 
 
     # ======================================
-    # MARKET REGIME
+    # REGIME
     # ======================================
 
-    st.subheader("🌐 Market Regime")
+    st.subheader(
+        "🌐 Market Regime"
+    )
 
     st.info(
-        f"Current regime: **{result['market_regime']}**"
+        result["market_regime"]
     )
 
 
@@ -235,10 +345,12 @@ if result:
 
 
     # ======================================
-    # AGENT DECISION
+    # AGENT
     # ======================================
 
-    st.subheader("🤖 Agent Decision")
+    st.subheader(
+        "🤖 Agent Decision"
+    )
 
     d1, d2 = st.columns(2)
 
@@ -257,11 +369,9 @@ if result:
     )
 
 
-    # ======================================
-    # REASONING
-    # ======================================
-
-    st.subheader("🧠 Agent Reasoning")
+    st.subheader(
+        "🧠 Agent Reasoning"
+    )
 
     st.info(
         result["reasoning"]
@@ -275,7 +385,9 @@ if result:
     # RISK
     # ======================================
 
-    st.subheader("🛡️ Risk Engine")
+    st.subheader(
+        "🛡️ Risk Engine"
+    )
 
     r1, r2, r3 = st.columns(3)
 
@@ -290,51 +402,45 @@ if result:
     )
 
     r3.metric(
-        "Paper Allocation",
-        f"${result['paper_allocation']:.2f}"
-    )
-
-
-    st.progress(
-        result["risk_score"] / 100
-    )
-    
-
-    st.divider()
-
-
-    # ======================================
-    # PAPER EXECUTION
-    # ======================================
-
-    st.subheader("🧪 Paper Execution")
-
-    p1, p2, p3 = st.columns(3)
-
-    p1.metric(
-        "Decision",
-        result["signal"]
-    )
-
-    p2.metric(
         "Allocation",
         f"${result['paper_allocation']:.2f}"
     )
 
-    p3.metric(
-        "Quantity",
-        f"{result['quantity']:.8f}"
+    st.progress(
+        result["risk_score"] / 100
     )
+
 
     st.divider()
 
 
     # ======================================
-    # ORDER BOOK DETAILS
+    # POSITION
+    # ======================================
+
+    st.subheader(
+        "📐 Position Analysis"
+    )
+
+    p1, p2 = st.columns(2)
+
+    p1.metric(
+        "Suggested Allocation",
+        f"${result['paper_allocation']:.2f}"
+    )
+
+    p2.metric(
+        "Estimated Quantity",
+        f"{result['quantity']:.8f}"
+    )
+
+
+    # ======================================
+    # ORDER BOOK
     # ======================================
 
     with st.expander(
-        "📚 View Top Order-Book Levels"
+        "📚 View Order-Book Levels"
     ):
 
         left, right = st.columns(2)
@@ -358,12 +464,8 @@ if result:
             )
 
 
-    # ======================================
-    # DATA SOURCE
-    # ======================================
-
     st.caption(
-        f"Live data endpoint: "
+        f"Market-data endpoint: "
         f"{result['endpoint']}"
     )
 
@@ -371,7 +473,7 @@ if result:
 else:
 
     # ======================================
-    # LANDING PAGE
+    # LANDING
     # ======================================
 
     st.divider()
@@ -382,44 +484,38 @@ else:
 
     st.markdown(
         """
-        ### PERCEPTION
+        **📡 PERCEPTION**
 
-        📡 Live Binance market data
-
-        ↓
-
-        ### ANALYSIS
-
-        📈 Price • Volume • Momentum
-
-        📖 Order-book imbalance
+        Live Binance market data
 
         ↓
 
-        ### REASONING
+        **📊 ANALYSIS**
 
-        🧠 Market regime
-
-        🎯 Confidence scoring
+        Price • Volume • Order Book
 
         ↓
 
-        ### RISK
+        **⏱️ MULTI-TIMEFRAME**
 
-        🛡️ Risk score
-
-        💰 Position sizing
+        1m • 5m • 15m • 1h • 4h
 
         ↓
 
-        ### DECISION
+        **🧠 REASONING**
 
-        🤖 BUY / SELL / HOLD
+        Momentum • Regime • Confidence
 
         ↓
 
-        ### EXECUTION
+        **🛡️ RISK**
 
-        🧪 Paper trading only
+        Risk Score • Position Sizing
+
+        ↓
+
+        **🤖 DECISION**
+
+        BUY / SELL / HOLD
         """
-            )
+    )
