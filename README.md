@@ -21,7 +21,7 @@ Streamlit UI
 → Risk Engine
 → Paper decision
 
-The `mcp_servers/` directory is structured so the adapters can later be replaced by real MCP tool calls.
+The `mcp_servers/` directory is structured.
 
 ## Run locally
 
