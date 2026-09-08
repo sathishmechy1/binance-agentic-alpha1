@@ -32,27 +32,38 @@ st.warning(
 
 
 # ==========================================
-# SIDEBAR
+# MAIN PAGE CONTROLS
 # ==========================================
 
-st.sidebar.header("⚙️ Agent Controls")
+st.subheader("⚙️ Market Controls")
 
-symbol = st.sidebar.selectbox(
-    "Trading Pair",
-    [
-        "BTCUSDT",
-        "ETHUSDT",
-        "BNBUSDT",
-        "SOLUSDT",
-        "XRPUSDT"
-    ]
-)
+col1, col2 = st.columns([2, 1])
 
-analyze = st.sidebar.button(
-    "🔍 Analyze Market",
-    type="primary",
-    use_container_width=True
-)
+with col1:
+
+    symbol = st.selectbox(
+        "Select a trading pair",
+        [
+            "BTCUSDT",
+            "ETHUSDT",
+            "BNBUSDT",
+            "SOLUSDT",
+            "XRPUSDT"
+        ],
+        index=0
+    )
+
+
+with col2:
+
+    st.write("")
+    st.write("")
+
+    analyze = st.button(
+        "🔍 Analyze Market",
+        type="primary",
+        use_container_width=True
+    )
 
 
 # ==========================================
@@ -67,7 +78,7 @@ if "error" not in st.session_state:
 
 
 # ==========================================
-# RUN AGENT
+# ANALYZE
 # ==========================================
 
 if analyze:
@@ -85,6 +96,7 @@ if analyze:
         with st.spinner(
             "🤖 Agent analyzing Binance market data..."
         ):
+
             result = agent.analyze(symbol)
 
         st.session_state.result = result
@@ -127,12 +139,19 @@ result = st.session_state.result
 if result:
 
     # ======================================
-    # MARKET
+    # MARKET INTELLIGENCE
     # ======================================
+
+    st.divider()
 
     st.header(
         f"📊 {result['symbol']} Market Intelligence"
     )
+
+
+    # ======================================
+    # MARKET METRICS
+    # ======================================
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -156,6 +175,7 @@ if result:
         result["volume_activity"]
     )
 
+
     st.divider()
 
 
@@ -176,6 +196,7 @@ if result:
         "Momentum Score",
         f"{result['momentum_score']}/100"
     )
+
 
     st.divider()
 
@@ -203,6 +224,7 @@ if result:
         f"{result['imbalance'] * 100:+.1f}%"
     )
 
+
     st.divider()
 
 
@@ -215,6 +237,7 @@ if result:
     st.info(
         result["market_regime"]
     )
+
 
     st.divider()
 
@@ -237,11 +260,13 @@ if result:
         f"{result['confidence']}%"
     )
 
-    st.write("**Agent Reasoning:**")
+
+    st.write("### 🧠 Agent Reasoning")
 
     st.info(
         result["reasoning"]
     )
+
 
     st.divider()
 
@@ -269,10 +294,12 @@ if result:
         f"${result['paper_allocation']:.2f}"
     )
 
+
     st.success(
         "Risk engine active. "
         "Real execution is disabled."
     )
+
 
     st.divider()
 
@@ -283,23 +310,35 @@ if result:
 
     st.subheader("🧪 Paper Execution")
 
-    st.write(
-        f"**Decision:** {result['signal']}"
-    )
+    p1, p2 = st.columns(2)
 
-    st.write(
-        f"**Paper Allocation:** "
-        f"${result['paper_allocation']:.2f}"
-    )
+    with p1:
 
-    st.write(
-        f"**Estimated Quantity:** "
-        f"{result['quantity']:.8f}"
-    )
+        st.write(
+            f"**Decision:** {result['signal']}"
+        )
+
+        st.write(
+            f"**Allocation:** "
+            f"${result['paper_allocation']:.2f}"
+        )
+
+    with p2:
+
+        st.write(
+            f"**Estimated Quantity:** "
+            f"{result['quantity']:.8f}"
+        )
+
+        st.write(
+            "**Execution:** PAPER ONLY"
+        )
+
 
     st.info(
         "No real Binance order was submitted."
     )
+
 
     st.divider()
 
@@ -338,20 +377,23 @@ if result:
     # ======================================
 
     st.caption(
-        f"Data endpoint: {result['endpoint']}"
+        f"Market-data endpoint: "
+        f"{result['endpoint']}"
     )
+
 
 else:
 
-    st.info(
-        "Select a trading pair and press "
-        "**Analyze Market**."
-    )
+    # ======================================
+    # INITIAL PAGE
+    # ======================================
+
+    st.divider()
+
+    st.subheader("🧠 Agentic Alpha Pipeline")
 
     st.markdown(
         """
-        ### 🧠 Agentic Alpha Pipeline
-
         **PERCEPTION**
 
         Live Binance market data
