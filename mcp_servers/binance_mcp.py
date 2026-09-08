@@ -1,38 +1,255 @@
 import requests
 
-class BinanceMCPServer:
-    """Read-only Binance public market-data adapter."""
 
-    def __init__(self, base_url="https://api.binance.com"):
-        self.base_url = base_url.rstrip("/")
+class BinanceMCPServer:
+    """
+    Read-only Binance public market-data adapter.
+
+    This version:
+    - Requires no Binance API key
+    - Does not place orders
+    - Automatically tries multiple Binance public endpoints
+    - Provides ticker and order-book data
+    """
+
+    DEFAULT_ENDPOINTS = [
+        "https://data-api.binance.vision",
+        "https://api-gcp.binance.com",
+        "https://api1.binance.com",
+        "https://api2.binance.com",
+        "https://api3.binance.com",
+        "https://api4.binance.com",
+        "https://api.binance.com",
+    ]
+
+    def __init__(self, endpoints=None):
+        self.endpoints = endpoints or self.DEFAULT_ENDPOINTS
+        self.active_endpoint = None
 
     def _get(self, path, params=None):
-        r = requests.get(f"{self.base_url}{path}", params=params, timeout=10)
-        r.raise_for_status()
-        return r.json()
+        """
+        Try each Binance public API endpoint until one works.
+        """
+
+        errors = []
+
+        for base_url in self.endpoints:
+
+            url = f"{base_url}{path}"
+
+            try:
+
+                response = requests.get(
+                    url,
+                    params=params,
+                    timeout=10,
+                    headers={
+                        "User-Agent": "AgenticAlpha/1.0"
+                    },
+                )
+
+                if response.status_code == 200:
+
+                    self.active_endpoint = base_url
+
+                    return response.json()
+
+                errors.append(
+                    f"{base_url} -> HTTP {response.status_code}"
+                )
+
+            except requests.RequestException as error:
+
+                errors.append(
+                    f"{base_url} -> {type(error).__name__}: {error}"
+                )
+
+        raise RuntimeError(
+            "All Binance public market-data endpoints failed.\n\n"
+            + "\n".join(errors)
+        )
 
     def get_market_data(self, symbol: str):
+        """
+        Get current price, 24h statistics,
+        and order-book depth.
+        """
+
         symbol = symbol.upper()
-        ticker = self._get("/api/v3/ticker/24hr", {"symbol": symbol})
-        depth = self._get("/api/v3/depth", {"symbol": symbol, "limit": 20})
+
+        ticker = self._get(
+            "/api/v3/ticker/24hr",
+            {
+                "symbol": symbol
+            },
+        )
+
+        depth = self._get(
+            "/api/v3/depth",
+            {
+                "symbol": symbol,
+                "limit": 20,
+            },
+        )
+
         return {
             "symbol": symbol,
-            "price": float(ticker["lastPrice"]),
-            "change_percent": float(ticker["priceChangePercent"]),
-            "volume": float(ticker["quoteVolume"]),
-            "high": float(ticker["highPrice"]),
-            "low": float(ticker["lowPrice"]),
+
+            "price": float(
+                ticker["lastPrice"]
+            ),
+
+            "change_percent": float(
+                ticker["priceChangePercent"]
+            ),
+
+            "volume": float(
+                ticker["quoteVolume"]
+            ),
+
+            "high": float(
+                ticker["highPrice"]
+            ),
+
+            "low": float(
+                ticker["lowPrice"]
+            ),
+
             "bids": depth["bids"],
+
             "asks": depth["asks"],
+
+            "endpoint": self.active_endpoint,
         }
 
-    def get_klines(self, symbol: str, interval="5m", limit=50):
-        rows = self._get("/api/v3/klines", {
-            "symbol": symbol.upper(), "interval": interval, "limit": limit
-        })
-        return rows
+    def get_price(self, symbol: str):
+        """
+        Get current price only.
+        """
 
-    def execute_market_order(self, *args, **kwargs):
-        raise RuntimeError(
-            "Execution is disabled in this version. This project is read-only/paper-trading."
+        symbol = symbol.upper()
+
+        data = self._get(
+            "/api/v3/ticker/price",
+            {
+                "symbol": symbol
+            },
         )
+
+        return {
+            "symbol": symbol,
+            "price": float(data["price"]),
+            "endpoint": self.active_endpoint,
+        }
+
+    def get_klines(
+        self,
+        symbol: str,
+        interval="5m",
+        limit=50,
+    ):
+        """
+        Get candlestick data for analysis.
+        """
+
+        symbol = symbol.upper()
+
+        return self._get(
+            "/api/v3/klines",
+            {
+                "symbol": symbol,
+                "interval": interval,
+                "limit": limit,
+            },
+        )
+
+    def get_order_book(
+        self,
+        symbol: str,
+        limit=20,
+    ):
+        """
+        Get Binance order-book depth.
+        """
+
+        symbol = symbol.upper()
+
+        data = self._get(
+            "/api/v3/depth",
+            {
+                "symbol": symbol,
+                "limit": limit,
+            },
+        )
+
+        return {
+            "symbol": symbol,
+            "bids": data["bids"],
+            "asks": data["asks"],
+            "endpoint": self.active_endpoint,
+        }
+
+    def execute_market_order(
+        self,
+        symbol,
+        side,
+        quantity,
+    ):
+        """
+        Trading is intentionally disabled.
+
+        This project is currently
+        READ-ONLY / PAPER TRADING.
+        """
+
+        raise RuntimeError(
+            "Order execution is disabled. "
+            "Agentic Alpha is running in "
+            "read-only / paper-trading mode."
+        )
+
+
+if __name__ == "__main__":
+
+    print(
+        "Agentic Alpha Binance market-data adapter"
+    )
+
+    try:
+
+        binance = BinanceMCPServer()
+
+        data = binance.get_market_data(
+            "BTCUSDT"
+        )
+
+        print(
+            f"Symbol: {data['symbol']}"
+        )
+
+        print(
+            f"Price: ${data['price']:,.2f}"
+        )
+
+        print(
+            f"24h Change: "
+            f"{data['change_percent']:+.2f}%"
+        )
+
+        print(
+            f"24h Volume: "
+            f"${data['volume']:,.2f}"
+        )
+
+        print(
+            f"Endpoint: "
+            f"{data['endpoint']}"
+        )
+
+    except Exception as error:
+
+        print(
+            "ERROR:"
+        )
+
+        print(error)
