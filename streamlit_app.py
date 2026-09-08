@@ -332,12 +332,6 @@ if result:
         f"{result['quantity']:.8f}"
     )
 
-    st.info(
-        "🛡️ PAPER TRADE ONLY — "
-        "No real Binance order was submitted."
-    )
-
-
     st.divider()
 
 
