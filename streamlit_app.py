@@ -298,13 +298,7 @@ if result:
     st.progress(
         result["risk_score"] / 100
     )
-
-
-    st.success(
-        "Risk engine active. "
-        "Real execution is disabled."
-    )
-
+    
 
     st.divider()
 
